@@ -19,23 +19,29 @@ const deleteImages = asyncHandler(async (req, res) => {
 
 const uploadImages = asyncHandler(async (req, res) => {
   try {
+    console.log("Upload started - files:", req.files?.length);
+    
     const uploader = async (file) => {
-      // Handle both memory buffer (Vercel) and file path (local)
+      console.log("Processing file:", file.originalname, file.mimetype);
+      
+      // Handle memory storage (Vercel)
       if (file.buffer) {
-        // Memory storage - upload directly from buffer
-        return await cloudinaryUploadImg(`data:image/jpeg;base64,${file.buffer.toString("base64")}`);
-      } else if (file.path) {
-        // Disk storage - upload from file path
+        const base64 = file.buffer.toString("base64");
+        const dataURI = `data:${file.mimetype};base64,${base64}`;
+        return await cloudinaryUploadImg(dataURI);
+      }
+      // Handle disk storage (local)
+      else if (file.path) {
         return await cloudinaryUploadImg(file.path);
       }
+      throw new Error("No file data available");
     };
 
     const urls = [];
-    console.log("Files received:", req.files);
 
     for (const file of req.files) {
       const newpath = await uploader(file);
-      console.log("Uploaded:", newpath);
+      console.log("Uploaded:", newpath.url);
       urls.push(newpath);
 
       // Cleanup temp file only if it exists (local development)
