@@ -1,12 +1,17 @@
 const bodyParser = require("body-parser");
 const express = require("express");
+const dotenv = require("dotenv");
 const dbConnect = require("./config/dbConnect");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
 const app = express();
-const dotenv = require("dotenv").config();
-require("dotenv").config({ path: __dirname + "/config/config.env" });
 
-const PORT = process.env.PORT;
+// Load environment variables
+const dotenvResult = dotenv.config({ path: __dirname + "/config.env" });
+if (dotenvResult.error) {
+  console.log("No config.env file found, using process.env variables");
+}
+
+const PORT = process.env.PORT || 5000;
 const authRouter = require("./routes/authRoute");
 const productRouter = require("./routes/productRoute");
 const blogRouter = require("./routes/blogRoute");

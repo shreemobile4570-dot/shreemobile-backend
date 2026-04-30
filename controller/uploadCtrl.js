@@ -1,30 +1,11 @@
 const fs = require("fs");
+const path = require("path");
 const asyncHandler = require("express-async-handler");
 
 const {
   cloudinaryUploadImg,
   cloudinaryDeleteImg,
 } = require("../utils/cloudinary");
-// const uploadImages = asyncHandler(async (req, res) => {
-//   try {
-//     const uploader = (path) => cloudinaryUploadImg(path, "images");
-//     const urls = [];
-//     const files = req.files;
-//     for (const file of files) {
-//       const { path } = file;
-//       const newpath = await uploader(path);
-//       console.log(newpath);
-//       urls.push(newpath);
-//       fs.unlinkSync(path);
-//     }
-//     const images = urls.map((file) => {
-//       return file;
-//     });
-//     res.json(images);
-//   } catch (error) {
-//     throw new Error(error);
-//   }
-// });
 
 const deleteImages = asyncHandler(async (req, res) => {
   const { id } = req.params;
@@ -38,31 +19,47 @@ const deleteImages = asyncHandler(async (req, res) => {
 
 const uploadImages = asyncHandler(async (req, res) => {
   try {
-    const uploader = (path) => cloudinaryUploadImg(path, "images");
+    console.log("Upload started - files:", req.files?.length);
+    
+    const uploader = async (file) => {
+      console.log("Processing file:", file.originalname, file.mimetype);
+      
+      // Handle memory storage (Vercel)
+      if (file.buffer) {
+        const base64 = file.buffer.toString("base64");
+        const dataURI = `data:${file.mimetype};base64,${base64}`;
+        return await cloudinaryUploadImg(dataURI);
+      }
+      // Handle disk storage (local)
+      else if (file.path) {
+        return await cloudinaryUploadImg(file.path);
+      }
+      throw new Error("No file data available");
+    };
+
     const urls = [];
 
-    console.log("Files received:", req.files);
-
     for (const file of req.files) {
-      const { path } = file;
-      const newpath = await uploader(path);
-      console.log("Uploaded:", newpath);
+      const newpath = await uploader(file);
+      console.log("Uploaded:", newpath.url);
       urls.push(newpath);
 
-      try {
-        fs.unlinkSync(path); // remove local file
-      } catch (unlinkErr) {
-        console.error("Failed to delete temp file:", unlinkErr);
+      // Cleanup temp file only if it exists (local development)
+      if (file.path) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch (unlinkErr) {
+          console.error("Failed to delete temp file:", unlinkErr);
+        }
       }
     }
 
     res.json(urls);
   } catch (error) {
-    console.error("Upload error:", error); // ✅ show actual backend error
+    console.error("Upload error:", error);
     res.status(500).json({ message: error.message });
   }
 });
-
 
 module.exports = {
   uploadImages,

@@ -51,44 +51,45 @@ const streamifier = require("streamifier");
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
   api_key: process.env.API_KEY,
-  api_secret: process.env.SECRET_KEY,
+  api_secret: process.env.API_SECRET,
 });
 
-// ✅ upload using BUFFER (IMPORTANT FIX)
-const cloudinaryUploadImg = async (fileBuffer, folder = "uploads") => {
+const cloudinaryUploadImg = async (fileToUploads) => {
   return new Promise((resolve, reject) => {
-    const stream = cloudinary.uploader.upload_stream(
-      {
-        folder,
-        resource_type: "image",
+    cloudinary.uploader.upload(
+      fileToUploads,
+      (result) => {
+        if (result.error) {
+          reject(result.error);
+        } else {
+          resolve({
+            url: result.secure_url,
+            asset_id: result.asset_id,
+            public_id: result.public_id,
+          });
+        }
       },
-      (error, result) => {
-        if (error) return reject(error);
+      {
+        resource_type: "auto",
+        folder: "ecommerce",
+      }
+    );
+  });
+};
 
+const cloudinaryDeleteImg = async (fileToDelete) => {
+  return new Promise((resolve, reject) => {
+    cloudinary.uploader.destroy(fileToDelete, (result) => {
+      if (result.error) {
+        reject(result.error);
+      } else {
         resolve({
           url: result.secure_url,
           asset_id: result.asset_id,
           public_id: result.public_id,
         });
       }
-    );
-
-    streamifier.createReadStream(fileBuffer).pipe(stream);
-  });
-};
-
-// ✅ delete (this part was mostly fine)
-const cloudinaryDeleteImg = async (public_id) => {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(
-      public_id,
-      { resource_type: "image" },
-      (error, result) => {
-        if (error) return reject(error);
-
-        resolve(result);
-      }
-    );
+    });
   });
 };
 
