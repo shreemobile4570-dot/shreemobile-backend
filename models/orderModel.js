@@ -47,6 +47,16 @@ var orderSchema = new mongoose.Schema(
         required: false,
       },
     },
+    paymentMethod: {
+      type: String,
+      enum: ["razorpay", "cod"],
+      default: null,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["pending", "paid", "failed"],
+      default: "pending",
+    },
     orderItems: [
       {
         product: {

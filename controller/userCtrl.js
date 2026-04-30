@@ -427,6 +427,7 @@ const createOrder = asyncHandler(async (req, res) => {
     totalPrice,
     totalPriceAfterDiscount,
     paymentInfo,
+    paymentMethod,
   } = req.body;
   const { _id } = req.user;
   try {
@@ -436,6 +437,8 @@ const createOrder = asyncHandler(async (req, res) => {
       totalPrice,
       totalPriceAfterDiscount,
       paymentInfo,
+      paymentMethod,
+      paymentStatus: paymentMethod === "cod" ? "pending" : "pending",
       user: _id,
     });
     res.json({
