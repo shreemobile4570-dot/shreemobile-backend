@@ -93,27 +93,33 @@ dbConnect();
 
 // Logging
 app.use(morgan("dev"));
-app.use(
-  cors({
-    origin: function (origin, callback) {
-      const allowedOrigins = [
-        "http://localhost:5173",
-        "http://localhost:3000",
-        "https://shree-ecom-frontend.vercel.app",
-        "https://shree-mobile-admin.vercel.app",
-      ];
 
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("CORS not allowed"));
-      }
-    },
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-  })
-);
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:3000",
+  "https://shree-ecom-frontend.vercel.app",
+  "https://shree-mobile-admin.vercel.app",
+  "https://shree-mobile-admin-git-main-neelkhots-projects.vercel.app",
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    const isAllowedVercelPreview =
+      origin &&
+      /^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(origin);
+
+    if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true,
+};
+
+app.use(cors(corsOptions));
 
 
 // app.use(
@@ -131,7 +137,7 @@ app.use(
 // );
 
 // Handle preflight requests
-app.options("*", cors());
+app.options("*", cors(corsOptions));
 
 //asdfasdfas
 app.use(express.json());
