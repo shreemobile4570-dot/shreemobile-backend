@@ -100,7 +100,8 @@ app.use(
     origin: [
       "http://localhost:5173", // local dev (Vite)
       "http://localhost:3000", // optional
-      "https://shree-ecom-frontend.vercel.app", // ✅ YOUR FRONTEND
+      "https://shree-ecom-frontend.vercel.app", 
+      "https://shree-mobile-admin.vercel.app/",// ✅ YOUR FRONTEND
     ],
     methods: ["GET", "POST", "PUT", "DELETE"],
     allowedHeaders: ["Content-Type", "Authorization"],
