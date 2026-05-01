@@ -45,8 +45,6 @@
 
 
 const cloudinary = require("cloudinary").v2;
-const streamifier = require("streamifier");
-
 
 cloudinary.config({
   cloud_name: process.env.CLOUD_NAME,
@@ -55,42 +53,20 @@ cloudinary.config({
 });
 
 const cloudinaryUploadImg = async (fileToUploads) => {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.upload(
-      fileToUploads,
-      (result) => {
-        if (result.error) {
-          reject(result.error);
-        } else {
-          resolve({
-            url: result.secure_url,
-            asset_id: result.asset_id,
-            public_id: result.public_id,
-          });
-        }
-      },
-      {
-        resource_type: "auto",
-        folder: "ecommerce",
-      }
-    );
+  const result = await cloudinary.uploader.upload(fileToUploads, {
+    resource_type: "auto",
+    folder: "ecommerce",
   });
+
+  return {
+    url: result.secure_url,
+    asset_id: result.asset_id,
+    public_id: result.public_id,
+  };
 };
 
 const cloudinaryDeleteImg = async (fileToDelete) => {
-  return new Promise((resolve, reject) => {
-    cloudinary.uploader.destroy(fileToDelete, (result) => {
-      if (result.error) {
-        reject(result.error);
-      } else {
-        resolve({
-          url: result.secure_url,
-          asset_id: result.asset_id,
-          public_id: result.public_id,
-        });
-      }
-    });
-  });
+  return cloudinary.uploader.destroy(fileToDelete);
 };
 
 module.exports = { cloudinaryUploadImg, cloudinaryDeleteImg };
