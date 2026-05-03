@@ -63,8 +63,11 @@ const getAllProduct = asyncHandler(async (req, res) => {
     const queryObj = { ...req.query };
     const excludeFields = ["page", "sort", "limit", "fields"];
     excludeFields.forEach((el) => delete queryObj[el]);
+    if (queryObj.tags && typeof queryObj.tags === "string" && queryObj.tags.includes(",")) {
+      queryObj.tags = { in: queryObj.tags.split(",") };
+    }
     let queryStr = JSON.stringify(queryObj);
-    queryStr = queryStr.replace(/\b(gte|gt|lte|lt)\b/g, (match) => `$${match}`);
+    queryStr = queryStr.replace(/\b(gte|gt|lte|lt|in)\b/g, (match) => `$${match}`);
 
     let query = Product.find(JSON.parse(queryStr));
 
