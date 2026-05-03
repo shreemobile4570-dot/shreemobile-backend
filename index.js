@@ -104,21 +104,46 @@ const allowedOrigins = [
   "https://shree-mobile-admin-git-main-neelkhots-projects.vercel.app",
 ];
 
+const isOriginAllowed = (origin) => {
+  if (!origin) return true;
+  return (
+    allowedOrigins.includes(origin) ||
+    /^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(origin) ||
+    /^https:\/\/shree-ecom-frontend.*\.vercel\.app$/.test(origin)
+  );
+};
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+
+  if (isOriginAllowed(origin)) {
+    res.header("Access-Control-Allow-Origin", origin || "*");
+    res.header("Vary", "Origin");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    );
+    res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  }
+
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+
+  next();
+});
+
 const corsOptions = {
   origin: function (origin, callback) {
-    const isAllowedVercelPreview =
-      origin &&
-      (/^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(origin) ||
-        /^https:\/\/shree-ecom-frontend.*\.vercel\.app$/.test(origin));
-
-    if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview) {
+    if (isOriginAllowed(origin)) {
       callback(null, true);
     } else {
       callback(new Error("CORS not allowed"));
     }
   },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization"],
   credentials: true,
 };
 
