@@ -139,30 +139,39 @@ const addToWishlist = asyncHandler(async (req, res) => {
 const rating = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   const { star, prodId, comment } = req.body;
+  validateMongoDbId(prodId);
   try {
     const product = await Product.findById(prodId);
+    if (!product) throw new Error("Product not found");
+
+    const ratingValue = Number(star);
+    if (!ratingValue || ratingValue < 1 || ratingValue > 5) {
+      throw new Error("Rating must be between 1 and 5");
+    }
+
     let alreadyRated = product.ratings.find(
       (userId) => userId.postedby.toString() === _id.toString()
     );
     if (alreadyRated) {
-      const updateRating = await Product.updateOne(
+      await Product.updateOne(
         {
-          ratings: { $elemMatch: alreadyRated },
+          _id: prodId,
+          "ratings.postedby": _id,
         },
         {
-          $set: { "ratings.$.star": star, "ratings.$.comment": comment },
-        },
-        {
-          new: true,
+          $set: {
+            "ratings.$.star": ratingValue,
+            "ratings.$.comment": comment,
+          },
         }
       );
     } else {
-      const rateProduct = await Product.findByIdAndUpdate(
+      await Product.findByIdAndUpdate(
         prodId,
         {
           $push: {
             ratings: {
-              star: star,
+              star: ratingValue,
               comment: comment,
               postedby: _id,
             },
@@ -175,17 +184,20 @@ const rating = asyncHandler(async (req, res) => {
     }
     const getallratings = await Product.findById(prodId);
     let totalRating = getallratings.ratings.length;
-    let ratingsum = getallratings.ratings
-      .map((item) => item.star)
-      .reduce((prev, curr) => prev + curr, 0);
-    let actualRating = Math.round(ratingsum / totalRating);
+    let ratingsum = getallratings.ratings.reduce(
+      (prev, curr) => prev + Number(curr.star || 0),
+      0
+    );
+    let actualRating = totalRating ? ratingsum / totalRating : 0;
     let finalproduct = await Product.findByIdAndUpdate(
       prodId,
       {
         totalrating: actualRating,
       },
       { new: true }
-    );
+    )
+      .populate("color")
+      .populate("size");
     res.json(finalproduct);
   } catch (error) {
     throw new Error(error);
