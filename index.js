@@ -90,7 +90,9 @@ const morgan = require("morgan");
 const cors = require("cors");
 
 // Connect DB
-dbConnect();
+dbConnect().catch((error) => {
+  console.error("Initial database connection failed:", error.message);
+});
 
 // Logging
 app.use(morgan("dev"));
