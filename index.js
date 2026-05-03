@@ -99,6 +99,7 @@ const allowedOrigins = [
   "http://localhost:5173",
   "http://localhost:3000",
   "https://shree-ecom-frontend.vercel.app",
+  "https://shree-ecom-frontend-git-main-neelkhots-projects.vercel.app",
   "https://shree-mobile-admin.vercel.app",
   "https://shree-mobile-admin-git-main-neelkhots-projects.vercel.app",
 ];
@@ -107,7 +108,8 @@ const corsOptions = {
   origin: function (origin, callback) {
     const isAllowedVercelPreview =
       origin &&
-      /^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(origin);
+      (/^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(origin) ||
+        /^https:\/\/shree-ecom-frontend.*\.vercel\.app$/.test(origin));
 
     if (!origin || allowedOrigins.includes(origin) || isAllowedVercelPreview) {
       callback(null, true);
