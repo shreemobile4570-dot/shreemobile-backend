@@ -527,13 +527,18 @@ const getAllOrders = asyncHandler(async (req, res) => {
 
 const getsingleOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  validateMongoDbId(id);
   try {
-    const orders = await Order.findOne({ _id: id })
+    const orders = await Order.findById(id)
       .populate("user", "firstname lastname email mobile")
       .populate("orderItems.product", "title brand price images")
       .populate("orderItems.color", "title")
       .populate("orderItems.size", "title")
       .lean();
+    if (!orders) {
+      res.status(404);
+      throw new Error("Order not found");
+    }
     res.json({
       orders,
     });

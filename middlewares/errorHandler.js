@@ -11,11 +11,16 @@ const notFound = (req, res, next) => {
 const errorHandler = (err, req, res, next) => {
   const statuscode = res.statusCode == 200 ? 500 : res.statusCode;
   res.status(statuscode);
-  res.json({
+  const payload = {
     status: "fail",
     message: err?.message,
-    stack: err?.stack,
-  });
+  };
+
+  if (process.env.NODE_ENV !== "production") {
+    payload.stack = err?.stack;
+  }
+
+  res.json(payload);
 };
 
 module.exports = { errorHandler, notFound };

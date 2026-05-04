@@ -2,6 +2,7 @@ const express = require("express");
 const dotenv = require("dotenv");
 const dbConnect = require("./config/dbConnect");
 const { notFound, errorHandler } = require("./middlewares/errorHandler");
+const ensureDbConnected = require("./middlewares/dbMiddleware");
 
 const app = express();
 
@@ -113,6 +114,8 @@ app.get("/", (req, res) => {
     message: "API is running!",
   });
 });
+
+app.use("/api", ensureDbConnected);
 
 app.use("/api/user", authRouter);
 app.use("/api/product", productRouter);
