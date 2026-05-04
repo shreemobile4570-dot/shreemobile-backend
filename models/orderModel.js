@@ -109,5 +109,9 @@ var orderSchema = new mongoose.Schema(
   }
 );
 
+orderSchema.index({ user: 1, createdAt: -1 });
+orderSchema.index({ createdAt: -1 });
+orderSchema.index({ orderStatus: 1, createdAt: -1 });
+
 //Export the model
 module.exports = mongoose.model("Order", orderSchema);

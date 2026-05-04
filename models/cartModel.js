@@ -33,5 +33,8 @@ var cartSchema = new mongoose.Schema(
   }
 );
 
+cartSchema.index({ userId: 1, createdAt: -1 });
+cartSchema.index({ userId: 1, productId: 1, color: 1, size: 1 });
+
 //Export the model
 module.exports = mongoose.model("Cart", cartSchema);

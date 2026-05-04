@@ -59,6 +59,8 @@ const getaProduct = asyncHandler(async (req, res) => {
 
 const getAllProduct = asyncHandler(async (req, res) => {
   try {
+    res.set("Cache-Control", "public, max-age=60, stale-while-revalidate=300");
+
     // Filtering
     const queryObj = { ...req.query };
     const excludeFields = ["page", "sort", "limit", "fields"];
@@ -91,15 +93,15 @@ const getAllProduct = asyncHandler(async (req, res) => {
 
     // pagination
 
-    const page = req.query.page;
-    const limit = req.query.limit;
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 24, 1), 100);
     const skip = (page - 1) * limit;
     query = query.skip(skip).limit(limit);
     if (req.query.page) {
       const productCount = await Product.countDocuments();
       if (skip >= productCount) throw new Error("This Page does not exists");
     }
-    const product = await query;
+    const product = await query.lean();
     res.json(product);
   } catch (error) {
     throw new Error(error);

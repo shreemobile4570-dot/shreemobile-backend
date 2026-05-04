@@ -42,9 +42,11 @@ const createUser = asyncHandler(async (req, res) => {
 
 // Login a user
 const loginUserCtrl = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
+  const { password } = req.body;
   // check if user exists or not
   const findUser = await User.findOne({ email });
+  if (findUser?.isBlocked) throw new Error("Account is blocked");
   if (findUser && (await findUser.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findUser?._id);
     const updateuser = await User.findByIdAndUpdate(
@@ -74,10 +76,12 @@ const loginUserCtrl = asyncHandler(async (req, res) => {
 // admin login
 
 const loginAdmin = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  const email = req.body.email?.trim().toLowerCase();
+  const { password } = req.body;
   // check if user exists or not
   const findAdmin = await User.findOne({ email });
-  if (findAdmin.role !== "admin") throw new Error("Not Authorised");
+  if (!findAdmin || findAdmin.role !== "admin") throw new Error("Not Authorised");
+  if (findAdmin.isBlocked) throw new Error("Account is blocked");
   if (findAdmin && (await findAdmin.isPasswordMatched(password))) {
     const refreshToken = await generateRefreshToken(findAdmin?._id);
     const updateuser = await User.findByIdAndUpdate(
@@ -196,7 +200,11 @@ const saveAddress = asyncHandler(async (req, res, next) => {
 
 const getallUser = asyncHandler(async (req, res) => {
   try {
-    const getUsers = await User.find().populate("wishlist");
+    const getUsers = await User.find()
+      .select("firstname lastname email mobile role isBlocked createdAt")
+      .sort("-createdAt")
+      .limit(500)
+      .lean();
     res.json(getUsers);
   } catch (error) {
     throw new Error(error);
@@ -365,10 +373,14 @@ const getUserCart = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   validateMongoDbId(_id);
   try {
+    res.set("Cache-Control", "private, max-age=15");
+
     const cart = await Cart.find({ userId: _id })
-      .populate("productId")
-      .populate("color")
-      .populate("size");
+      .sort("-createdAt")
+      .populate("productId", "title price images brand category quantity")
+      .populate("color", "title")
+      .populate("size", "title")
+      .lean();
     res.json(cart);
   } catch (error) {
     throw new Error(error);
@@ -414,8 +426,9 @@ const updateProductQuantityFromCart = asyncHandler(async (req, res) => {
       userId: _id,
       _id: cartItemId,
     });
+    if (!cartItem) throw new Error("Cart item not found");
     cartItem.quantity = newQuantity;
-    cartItem.save();
+    await cartItem.save();
     res.json(cartItem);
   } catch (error) {
     throw new Error(error);
@@ -455,11 +468,21 @@ const createOrder = asyncHandler(async (req, res) => {
 const getMyOrders = asyncHandler(async (req, res) => {
   const { _id } = req.user;
   try {
+    res.set("Cache-Control", "private, max-age=30");
+
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 25, 1), 100);
+    const skip = (page - 1) * limit;
+
     const orders = await Order.find({ user: _id })
-      .populate("user")
-      .populate("orderItems.product")
-      .populate("orderItems.color")
-      .populate("orderItems.size");
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit)
+      .populate("user", "firstname lastname email mobile")
+      .populate("orderItems.product", "title brand price images")
+      .populate("orderItems.color", "title")
+      .populate("orderItems.size", "title")
+      .lean();
     res.json({
       orders,
     });
@@ -479,9 +502,19 @@ const getMyOrders = asyncHandler(async (req, res) => {
 // });
 
 const getAllOrders = asyncHandler(async (req, res) => {
-  const { _id } = req.user;
   try {
-    const orders = await Order.find().populate("user");
+    res.set("Cache-Control", "private, max-age=15");
+
+    const page = Math.max(Number(req.query.page) || 1, 1);
+    const limit = Math.min(Math.max(Number(req.query.limit) || 100, 1), 200);
+    const skip = (page - 1) * limit;
+
+    const orders = await Order.find()
+      .sort("-createdAt")
+      .skip(skip)
+      .limit(limit)
+      .populate("user", "firstname lastname email mobile")
+      .lean();
     // .populate("orderItems.product")
     // .populate("orderItems.color");
     res.json({
@@ -496,10 +529,11 @@ const getsingleOrder = asyncHandler(async (req, res) => {
   const { id } = req.params;
   try {
     const orders = await Order.findOne({ _id: id })
-      .populate("user")
-      .populate("orderItems.product")
-      .populate("orderItems.color")
-      .populate("orderItems.size");
+      .populate("user", "firstname lastname email mobile")
+      .populate("orderItems.product", "title brand price images")
+      .populate("orderItems.color", "title")
+      .populate("orderItems.size", "title")
+      .lean();
     res.json({
       orders,
     });
