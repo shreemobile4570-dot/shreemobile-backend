@@ -65,9 +65,16 @@ const getAllProduct = asyncHandler(async (req, res) => {
     const queryObj = { ...req.query };
     const excludeFields = ["page", "sort", "limit", "fields"];
     excludeFields.forEach((el) => delete queryObj[el]);
-    if (queryObj.tags && typeof queryObj.tags === "string" && queryObj.tags.includes(",")) {
-      queryObj.tags = { in: queryObj.tags.split(",") };
-    }
+    ["brand", "category", "tags"].forEach((field) => {
+      if (queryObj[field] && typeof queryObj[field] === "string" && queryObj[field].includes(",")) {
+        queryObj[field] = {
+          in: queryObj[field]
+            .split(",")
+            .map((value) => value.trim())
+            .filter(Boolean),
+        };
+      }
+    });
     let queryStr = JSON.stringify(queryObj);
     queryStr = queryStr.replace(/\b(gte|gt|lte|lt|in)\b/g, (match) => `$${match}`);
 
