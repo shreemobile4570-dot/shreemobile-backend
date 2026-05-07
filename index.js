@@ -46,6 +46,8 @@ const allowedOrigins = [
   "https://shree-ecom-frontend.vercel.app",
   "https://shree-ecom-frontend-git-main-neelkhots-projects.vercel.app",
   "https://stri-ksham.vercel.app",
+  "https://striksham-admin.vercel.app",
+  "https://striksham.vercel.app",
   "https://shree-mobile-admin.vercel.app",
   "https://shree-mobile-admin-git-main-neelkhots-projects.vercel.app",
 ];
@@ -58,6 +60,8 @@ const isOriginAllowed = (origin) => {
   return (
     allowedOrigins.includes(normalizedOrigin) ||
     /^https:\/\/stri-ksham.*\.vercel\.app$/.test(normalizedOrigin) ||
+    /^https:\/\/striksham.*\.vercel\.app$/.test(normalizedOrigin) ||
+    /^https:\/\/striksham-admin.*\.vercel\.app$/.test(normalizedOrigin) ||
     /^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(normalizedOrigin) ||
     /^https:\/\/shree-ecom-frontend.*\.vercel\.app$/.test(normalizedOrigin)
   );
