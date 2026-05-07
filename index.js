@@ -45,16 +45,21 @@ const allowedOrigins = [
   "http://localhost:3000",
   "https://shree-ecom-frontend.vercel.app",
   "https://shree-ecom-frontend-git-main-neelkhots-projects.vercel.app",
+  "https://stri-ksham.vercel.app",
   "https://shree-mobile-admin.vercel.app",
   "https://shree-mobile-admin-git-main-neelkhots-projects.vercel.app",
 ];
 
+const normalizeOrigin = (origin) => origin?.replace(/\/+$/, "");
+
 const isOriginAllowed = (origin) => {
   if (!origin) return true;
+  const normalizedOrigin = normalizeOrigin(origin);
   return (
-    allowedOrigins.includes(origin) ||
-    /^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(origin) ||
-    /^https:\/\/shree-ecom-frontend.*\.vercel\.app$/.test(origin)
+    allowedOrigins.includes(normalizedOrigin) ||
+    /^https:\/\/stri-ksham.*\.vercel\.app$/.test(normalizedOrigin) ||
+    /^https:\/\/shree-mobile-admin.*\.vercel\.app$/.test(normalizedOrigin) ||
+    /^https:\/\/shree-ecom-frontend.*\.vercel\.app$/.test(normalizedOrigin)
   );
 };
 
