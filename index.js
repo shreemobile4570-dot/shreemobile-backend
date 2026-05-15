@@ -50,21 +50,23 @@ const allowedOrigins = [
   "https://striksham.vercel.app",
   "https://shree-mobile-admin.vercel.app",
   "https://shree-mobile-admin-git-main-neelkhots-projects.vercel.app",
-  "https://shree-mobiel.vercel.app/",
-  "https://shreemobile-admin.vercel.app/",
+  "https://shree-mobiel.vercel.app",
+  "https://shreemobile-admin.vercel.app",
 ];
 
 const normalizeOrigin = (origin) => origin?.replace(/\/+$/, "");
+const normalizedAllowedOrigins = allowedOrigins.map(normalizeOrigin);
 
 const isOriginAllowed = (origin) => {
   if (!origin) return true;
   const normalizedOrigin = normalizeOrigin(origin);
   return (
-    allowedOrigins.includes(normalizedOrigin) ||
+    normalizedAllowedOrigins.includes(normalizedOrigin) ||
     /^https:\/\/stri-ksham.*\.vercel\.app$/.test(normalizedOrigin) ||
     /^https:\/\/striksham.*\.vercel\.app$/.test(normalizedOrigin) ||
     /^https:\/\/striksham-admin.*\.vercel\.app$/.test(normalizedOrigin) ||
     /^https:\/\/shree-mobile.*\.vercel\.app$/.test(normalizedOrigin) ||
+    /^https:\/\/shree-mobiel.*\.vercel\.app$/.test(normalizedOrigin) ||
     /^https:\/\/shreemobile-admin.*\.vercel\.app$/.test(normalizedOrigin)
   );
 };
