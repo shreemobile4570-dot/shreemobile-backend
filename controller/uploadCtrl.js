@@ -4,6 +4,7 @@ const asyncHandler = require("express-async-handler");
 
 const {
   cloudinaryUploadImg,
+  cloudinaryUploadBuffer,
   cloudinaryDeleteImg,
 } = require("../utils/cloudinary");
 
@@ -26,9 +27,7 @@ const uploadImages = asyncHandler(async (req, res) => {
       
       // Handle memory storage (Vercel)
       if (file.buffer) {
-        const base64 = file.buffer.toString("base64");
-        const dataURI = `data:${file.mimetype};base64,${base64}`;
-        return await cloudinaryUploadImg(dataURI);
+        return await cloudinaryUploadBuffer(file.buffer);
       }
       // Handle disk storage (local)
       else if (file.path) {
